@@ -3,7 +3,6 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { StepIndicator } from "@/components/auth/StepIndicator";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { PasswordInput } from "@/components/ui/PasswordInput";
@@ -62,7 +61,7 @@ export default function SignupPage() {
 
     register(payload)
       .then(() => {
-        router.push(`/verify-email?email=${encodeURIComponent(businessEmail)}`);
+        router.push("/login");
       })
       .catch((err) => {
         setLoading(false);
@@ -74,13 +73,9 @@ export default function SignupPage() {
 
   return (
     <div>
-      <div className="mb-8 flex justify-end">
-        <StepIndicator currentStep={1} />
-      </div>
-
       <h1 className="text-2xl font-semibold text-text-primary">Create your account</h1>
       <p className="mt-1 text-sm text-text-secondary">
-        Set up your Billr merchant account. Step 1 of 3.
+        Set up your Billr merchant account.
       </p>
 
       {nonFieldErrors && (

@@ -11,7 +11,7 @@ interface AuthContextType {
   user: User | null;
   merchant: Merchant | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<User>;
+  login: (email: string, password: string) => Promise<any>;
   confirmOtp: (email: string, otp: string) => Promise<User>;
   register: (payload: any) => Promise<any>;
   logout: () => void;
@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/signup") || pathname.startsWith("/verify-email") || pathname.startsWith("/forgot-password");
+  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/signup") || pathname.startsWith("/forgot-password");
 
   useEffect(() => {
     async function loadUser() {
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Fetch merchant details (which works as an auth check and loads live keys)
         const merchantData = await merchantService.getDetails();
         setMerchant(merchantData);
-        
+
         // Retrieve local user data if stored, or mock it from merchant info
         const storedUser = localStorage.getItem("billr_user");
         if (storedUser) {
@@ -57,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: merchantData.business_email,
             user_type: "merchant_admin",
             related_merchant: merchantData,
+            status: "",
           };
           setUser(fallbackUser);
         }
@@ -71,17 +72,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadUser();
   }, [pathname]);
 
-  const login = async (email: string, password: string): Promise<User> => {
+  const login = async (email: string, password: string): Promise<any> => {
     setLoading(true);
     try {
       const data = await authService.login(email, password);
+
+      if (data && (data as any).status === "OTP sent to email") {
+        setLoading(false);
+        return data;
+      }
 
       setCookie("accessToken", data.access);
       setCookie("refreshToken", data.refresh);
       setUser(data.user);
       setMerchant(data.user.related_merchant);
       localStorage.setItem("billr_user", JSON.stringify(data.user));
-      
+
       router.push("/dashboard");
       return data.user;
     } catch (error) {
@@ -100,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
       setMerchant(data.user.related_merchant);
       localStorage.setItem("billr_user", JSON.stringify(data.user));
-      
+
       router.push("/dashboard");
       return data.user;
     } catch (error) {

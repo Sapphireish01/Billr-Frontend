@@ -73,6 +73,7 @@ export interface Merchant {
 }
 
 export interface User {
+  status: string;
   id: number;
   full_name: string;
   email: string;
